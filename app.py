@@ -3,19 +3,20 @@ import numpy as np
 import joblib
 import time
 
-# Page Config
+# ---------------- PAGE CONFIG ---------------- #
 st.set_page_config(
     page_title="AI House Price Predictor",
     page_icon="🧠",
     layout="wide"
 )
 
-# Load model
+# ---------------- LOAD MODEL ---------------- #
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
 # ---------------- HACKER UI CSS ---------------- #
-st.markdown("""
+st.markdown(
+    """
 <style>
 body {
     background-color: #020617;
@@ -50,7 +51,9 @@ hr {
     border: 1px solid #00f5ff;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True
+)
 
 # ---------------- HEADER ---------------- #
 st.markdown("## 🧠 AI HOUSE PRICE PREDICTOR")
@@ -76,25 +79,39 @@ if st.button("🚀 EXECUTE AI PREDICTION"):
     with st.spinner("Initializing neural layers..."):
         time.sleep(1.2)
 
-    features = np.array([[MedInc, HouseAge, AveRooms, AveBedrms,
-                           Population, AveOccup, Latitude, Longitude]])
+    # Prepare input
+    features = np.array([
+        [MedInc, HouseAge, AveRooms, AveBedrms,
+         Population, AveOccup, Latitude, Longitude]
+    ])
 
+    # Scale & predict
     features_scaled = scaler.transform(features)
     prediction = model.predict(features_scaled)[0] * 100000
 
     st.success("🟢 Prediction Complete")
-    st.markdown(f"## 💰 **Estimated House Price:**  
-### `$ {prediction:,.2f}`")
 
-    st.markdown("""
-    ```log
-    STATUS: SUCCESS
-    MODEL: Linear Regression
-    SCALING: StandardScaler
-    CONFIDENCE: HIGH
-    ```
-    """)
+    # ✅ FIXED MULTI-LINE F-STRING
+    st.markdown(
+        f"""
+## 💰 **Estimated House Price**
+### `$ {prediction:,.2f}`
+"""
+    )
 
-# ---------------- FOOTER ---------------- #
+    st.markdown(
+        """
+```log
+STATUS: SUCCESS
+MODEL: Linear Regression
+SCALING: StandardScaler
+CONFIDENCE: HIGH
+```
+
+"""
+)
+
+# ---------------- FOOTER ----------------
+
 st.markdown("---")
 st.caption("⚡ Built by AI • Ajay Dhangar • Machine Learning • Streamlit")
