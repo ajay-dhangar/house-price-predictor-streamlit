@@ -1,7 +1,14 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import joblib
+import os
 import time
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
 
 # ---------------- PAGE CONFIG ---------------- #
 st.set_page_config(
@@ -10,9 +17,43 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOAD MODEL ---------------- #
-model = joblib.load("model.pkl")
-scaler = joblib.load("scaler.pkl")
+# ---------------- MODEL LOADER (SAFE) ---------------- #
+@st.cache_resource
+def load_or_train_model():
+    model_path = "model.pkl"
+    scaler_path = "scaler.pkl"
+
+    # If model exists → load it
+    if os.path.exists(model_path) and os.path.exists(scaler_path):
+        model = joblib.load(model_path)
+        scaler = joblib.load(scaler_path)
+        return model, scaler
+
+    # Else → train model (Cloud-safe)
+    housing = fetch_california_housing()
+    df = pd.DataFrame(housing.data, columns=housing.feature_names)
+    df["Price"] = housing.target
+
+    X = df.drop("Price", axis=1)
+    y = df["Price"]
+
+    X_train, _, y_train, _ = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+
+    model = LinearRegression()
+    model.fit(X_train_scaled, y_train)
+
+    joblib.dump(model, model_path)
+    joblib.dump(scaler, scaler_path)
+
+    return model, scaler
+
+
+model, scaler = load_or_train_model()
 
 # ---------------- HACKER / AI CSS ---------------- #
 st.markdown("""
@@ -43,9 +84,6 @@ h1, h2, h3 {
     background-color: #020617;
     color: #00f5ff;
 }
-.sidebar {
-    background: #020617;
-}
 hr {
     border: 1px solid #00f5ff;
 }
@@ -54,7 +92,7 @@ hr {
 
 # ---------------- HEADER ---------------- #
 st.markdown("## 🧠 AI HOUSE PRICE PREDICTOR")
-st.markdown("**> Neural Regression System | Hacker Mode Enabled**")
+st.markdown("**> Autonomous ML System | Hacker Mode Enabled**")
 st.markdown("---")
 
 # ---------------- SIDEBAR INPUTS ---------------- #
@@ -73,26 +111,17 @@ Longitude = st.sidebar.number_input("Longitude", value=-118.25)
 st.markdown("### 🔮 Prediction Console")
 
 if st.button("🚀 EXECUTE AI PREDICTION"):
-    with st.spinner("Initializing neural layers..."):
-        time.sleep(1.2)
+    with st.spinner("Booting neural subsystems..."):
+        time.sleep(1.0)
 
-    features = np.array([[
-        MedInc,
-        HouseAge,
-        AveRooms,
-        AveBedrms,
-        Population,
-        AveOccup,
-        Latitude,
-        Longitude
-    ]])
+    features = np.array([[MedInc, HouseAge, AveRooms, AveBedrms,
+                           Population, AveOccup, Latitude, Longitude]])
 
     features_scaled = scaler.transform(features)
     prediction = model.predict(features_scaled)[0] * 100000
 
-    st.success("🟢 Prediction Complete")
+    st.success("🟢 Prediction Successful")
 
-    # ✅ FIXED MULTILINE OUTPUT
     st.markdown(f"""
 ## 💰 **Estimated House Price**
 ### `$ {prediction:,.2f}`
@@ -100,10 +129,10 @@ if st.button("🚀 EXECUTE AI PREDICTION"):
 
     st.markdown("""
 ```log
-STATUS: SUCCESS
+STATUS: OK
 MODEL: Linear Regression
-SCALING: StandardScaler
-CONFIDENCE: HIGH
+MODE: AUTO-TRAIN SAFE
+SECURITY: STABLE
 ```
 """
 )
