@@ -14,9 +14,8 @@ st.set_page_config(
 model = joblib.load("model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-# ---------------- HACKER UI CSS ---------------- #
-st.markdown(
-    """
+# ---------------- HACKER / AI CSS ---------------- #
+st.markdown("""
 <style>
 body {
     background-color: #020617;
@@ -51,9 +50,7 @@ hr {
     border: 1px solid #00f5ff;
 }
 </style>
-""",
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
 # ---------------- HEADER ---------------- #
 st.markdown("## 🧠 AI HOUSE PRICE PREDICTOR")
@@ -79,35 +76,35 @@ if st.button("🚀 EXECUTE AI PREDICTION"):
     with st.spinner("Initializing neural layers..."):
         time.sleep(1.2)
 
-    # Prepare input
-    features = np.array([
-        [MedInc, HouseAge, AveRooms, AveBedrms,
-         Population, AveOccup, Latitude, Longitude]
-    ])
+    features = np.array([[
+        MedInc,
+        HouseAge,
+        AveRooms,
+        AveBedrms,
+        Population,
+        AveOccup,
+        Latitude,
+        Longitude
+    ]])
 
-    # Scale & predict
     features_scaled = scaler.transform(features)
     prediction = model.predict(features_scaled)[0] * 100000
 
     st.success("🟢 Prediction Complete")
 
-    # ✅ FIXED MULTI-LINE F-STRING
-    st.markdown(
-        f"""
+    # ✅ FIXED MULTILINE OUTPUT
+    st.markdown(f"""
 ## 💰 **Estimated House Price**
 ### `$ {prediction:,.2f}`
-"""
-    )
+""")
 
-    st.markdown(
-        """
+    st.markdown("""
 ```log
 STATUS: SUCCESS
 MODEL: Linear Regression
 SCALING: StandardScaler
 CONFIDENCE: HIGH
 ```
-
 """
 )
 
